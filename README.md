@@ -38,8 +38,11 @@ Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do
 
 ### 5. Crie um arquivo .env na raiz da pasta backend com as seguintes chaves:
 . SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
-. SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidHRxdnNyc3BoYm5qaWp0aGdjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTA4Mjk3MywiZXhwIjoyMDg2NjU4OTczfQ.091YXX4bs9uzaE7V098P_mgPUY1i3S3sp9w-vhvVjl4
+
+.SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidHRxdnNyc3BoYm5qaWp0aGdjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTA4Mjk3MywiZXhwIjoyMDg2NjU4OTczfQ.091YXX4bs9uzaE7V098P_mgPUY1i3S3sp9w-vhvVjl4
+
 . JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
+
 . GEMINI_API_KEY=AIzaSyCdJNB7EHxp1cnGKy0cD2Kq_6y6fD1CyBY
 
 ### 6. Inicie o servidor:
@@ -51,7 +54,9 @@ Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do
 
 ### 8. Crie um arquivo .env.local na raiz da pasta frontend com as seguintes chaves:
 . NEXT_PUBLIC_SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
+
 . NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_inDVkxyDnaeFABFZOJQ74w__hDKuUyP
+
 . NEXT_PUBLIC_JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
 
 ### 9. Execute o front-end

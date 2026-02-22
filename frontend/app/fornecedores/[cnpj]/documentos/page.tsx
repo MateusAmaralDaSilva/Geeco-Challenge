@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
-import { ArrowLeft, Upload, Calendar, FileUp, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, Calendar, FileUp, Loader2, Tag } from "lucide-react";
 import Link from "next/link";
 
 export default function PaginaUploadDocumentos() {
@@ -15,6 +15,7 @@ export default function PaginaUploadDocumentos() {
 
     const [file, setFile] = useState<File | null>(null);
     const [validade, setValidade] = useState("");
+    const [tipoDocumento, setTipoDocumento] = useState("Contrato Social");
     const [enviando, setEnviando] = useState(false);
 
     const supabase = createBrowserClient(
@@ -25,8 +26,8 @@ export default function PaginaUploadDocumentos() {
     async function handleUpload(e: React.FormEvent) {
         e.preventDefault();
         
-        if (!file || !validade) {
-            alert("Por favor, insira o arquivo e a data de validade.");
+        if (!file || !validade || !tipoDocumento) {
+            alert("Por favor, preencha todos os campos e insira o arquivo.");
             return;
         }
 
@@ -34,6 +35,7 @@ export default function PaginaUploadDocumentos() {
         const formData = new FormData();
         formData.append("cnpj", cnpj);
         formData.append("validade", validade);
+        formData.append("tipo_documento", tipoDocumento);
         formData.append("file", file);
 
         try {
@@ -52,7 +54,8 @@ export default function PaginaUploadDocumentos() {
                 router.refresh();
             } else {
                 const error = await response.json();
-                alert(`Erro: ${error.detail}`);
+                console.error("ERRO DO PYTHON:", error);
+                alert(`Erro: ${JSON.stringify(error.detail)}`);
             }
         } catch (err) {
             alert("Falha ao conectar com o servidor.");
@@ -81,7 +84,7 @@ export default function PaginaUploadDocumentos() {
                     </div>
 
                     <form onSubmit={handleUpload} className="space-y-6">
-                        {/* Dropzone Simples */}
+                        
                         <div className={`border-2 border-dashed rounded-2xl p-8 transition-colors flex flex-col items-center justify-center gap-3 cursor-pointer ${file ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300'}`}>
                             <input 
                                 type="file" 
@@ -98,18 +101,39 @@ export default function PaginaUploadDocumentos() {
                             </label>
                         </div>
 
-                        {/* Removido o Grid, o input de Validade agora ocupa toda a largura */}
-                        <div>
-                            <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest mb-2 italic">
-                                <Calendar size={14} /> Data de Validade
-                            </label>
-                            <input 
-                                type="date" 
-                                required
-                                value={validade}
-                                onChange={(e) => setValidade(e.target.value)}
-                                className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                            />
+                        {/* Grid otimizado: Tipo e Validade lado a lado */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest mb-2 italic">
+                                    <Tag size={14} /> Tipo de Documento
+                                </label>
+                                <select 
+                                    required
+                                    value={tipoDocumento}
+                                    onChange={(e) => setTipoDocumento(e.target.value)}
+                                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                >   
+                                    <option value="Alvará">Alvará</option>
+                                    <option value="Apresentação Institucional">Apresentação Institucional</option>
+                                    <option value="Certificado">Certificado</option>
+                                    <option value="Contrato Social">Contrato Social</option>
+                                    <option value="Tabela de Preços">Tabela de Preços</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest mb-2 italic">
+                                    <Calendar size={14} /> Data de Validade
+                                </label>
+                                <input 
+                                    type="date" 
+                                    required
+                                    value={validade}
+                                    onChange={(e) => setValidade(e.target.value)}
+                                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                />
+                            </div>
                         </div>
                         
                         <button 

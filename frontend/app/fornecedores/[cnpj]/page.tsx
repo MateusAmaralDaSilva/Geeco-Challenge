@@ -32,6 +32,8 @@ export default function DetalhesFornecedor() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false); 
     const [isRepModalOpen, setIsRepModalOpen] = useState(false);
+    // NOVO: Estado para o Modal de Edição de Documentos
+    const [documentoSendoEditado, setDocumentoSendoEditado] = useState<any>(null);
 
     async function carregarDados() {
         const cnpjLimpo = params.cnpj || params.id;
@@ -153,12 +155,47 @@ export default function DetalhesFornecedor() {
         } catch (error) { alert("Erro de conexão ao tentar excluir contato."); }
     }
 
-    const handleDownload = async (url: string, filename: string, e: React.MouseEvent) => {
-        e.preventDefault();
-        if (!url || url === "#") return alert("Link indisponível.");
+    // NOVA FUNÇÃO: Deletar Documento
+    async function deletarDocumento(idDoc: number, nomeArquivo: string) {
+        const confirmacao = window.confirm(`Tem certeza que deseja apagar o arquivo "${nomeArquivo}"?`);
+        if (!confirmacao) return;
+
         try {
-            const response = await fetch(url);
+            const { data: { session } } = await supabase.auth.getSession();
+            // AJUSTE A ROTA ABAIXO CONFORME SEU BACKEND
+            const response = await fetch(`http://127.0.0.1:8001/documentos/${idDoc}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${session?.access_token}` }
+            });
+            if (response.ok) {
+                setDocumentos(documentos.filter((d: any) => d.id !== idDoc));
+            } else {
+                const errorData = await response.json();
+                alert(`Erro ao apagar arquivo: ${JSON.stringify(errorData.detail)}`);
+            }
+        } catch (error) { alert("Erro de conexão ao tentar apagar o documento."); }
+    }
+
+    const handleDownload = async (caminhoStorage: string, filename: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!caminhoStorage) return alert("Caminho do arquivo não encontrado no banco.");
+        
+        try {
+            // 1. Pede para o Supabase gerar um link temporário (válido por 60 segundos)
+            // Lembre-se de confirmar se o nome do seu bucket é "documentos" mesmo
+            const { data, error } = await supabase.storage
+                .from('Documentos')
+                .createSignedUrl(caminhoStorage, 60);
+                
+            if (error || !data) {
+                console.error("Erro no Supabase:", error);
+                return alert("Não foi possível gerar o link de download.");
+            }
+            // 2. Faz o download usando o link seguro gerado
+            const response = await fetch(data.signedUrl);
             if (!response.ok) throw new Error("Erro de rede.");
+            
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -169,7 +206,11 @@ export default function DetalhesFornecedor() {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(blobUrl);
-        } catch (error) { alert("Falha ao baixar o documento."); }
+            
+        } catch (error) { 
+            console.error(error);
+            alert("Falha ao baixar o documento."); 
+        }
     };
 
     if (loading) return (
@@ -292,7 +333,6 @@ export default function DetalhesFornecedor() {
                                             <div className="flex items-center gap-2">
                                                 <h3 className={`font-black text-xl leading-tight ${rep.atual ? 'text-gray-900' : 'text-gray-500 line-through'}`}>{rep.nome}</h3>
                                             </div>
-                                            {/* BADGE DE ATUAL OU ANTIGO reposicionada */}
                                             <span className={`inline-block mt-1 text-[9px] px-2 py-0.5 rounded-md font-black uppercase tracking-widest ${rep.atual ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
                                                 {rep.atual ? "Atual" : "Antigo"}
                                             </span>
@@ -398,13 +438,32 @@ export default function DetalhesFornecedor() {
                                             </div>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={(e) => handleDownload(doc.url_download, doc.nome_arquivo, e)}
-                                        className="p-3 bg-gray-50 hover:bg-emerald-100 rounded-full text-gray-400 hover:text-emerald-700 transition-colors"
-                                        title="Baixar Documento"
-                                    >
-                                        <Download size={20} />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <a 
+                                            href="#"
+                                            onClick={(e) => handleDownload(doc.caminho_storage, doc.nome_arquivo, e)}
+                                            className="p-3 text-gray-400 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors"
+                                            title="Baixar Documento"
+                                        >
+                                            <Download size={18} />
+                                        </a>
+                                        {/* NOVO BOTÃO DE EDITAR DOCUMENTO */}
+                                        <button 
+                                            onClick={() => setDocumentoSendoEditado(doc)}
+                                            className="p-3 text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors"
+                                            title="Editar Documento"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        {/* NOVO BOTÃO DE DELETAR DOCUMENTO */}
+                                        <button 
+                                            onClick={() => deletarDocumento(doc.id, doc.nome_arquivo)}
+                                            className="p-3 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-colors"
+                                            title="Excluir Documento"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -419,7 +478,7 @@ export default function DetalhesFornecedor() {
 
             </div>
 
-            {/* MODAIS */}
+            {/* MODAIS EXISTENTES */}
             {isEditModalOpen && (
                 <ModalEditarFornecedor 
                     fornecedor={fornecedor} 
@@ -444,6 +503,15 @@ export default function DetalhesFornecedor() {
                     onSuccess={carregarDados}
                 />
             )}
+
+            {/* NOVO MODAL DE EDIÇÃO DE DOCUMENTO */}
+            {documentoSendoEditado && (
+                <ModalEditarDocumento
+                    documento={documentoSendoEditado}
+                    onClose={() => setDocumentoSendoEditado(null)}
+                    onSuccess={carregarDados}
+                />
+            )}
         </div>
     );
 }
@@ -452,10 +520,108 @@ export default function DetalhesFornecedor() {
 // COMPONENTES SECUNDÁRIOS (MODAIS)
 // ==========================================
 
+// NOVO COMPONENTE: ModalEditarDocumento
+function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
+    const [formData, setFormData] = useState({
+        nome_arquivo: documento.nome_arquivo || "",
+        validade: documento.validade ? new Date(documento.validade).toISOString().split('T')[0] : ""
+    });
+    // NOVO: Estado para segurar o arquivo novo (se o usuário selecionar)
+    const [arquivoNovo, setArquivoNovo] = useState<File | null>(null);
+    const [salvando, setSalvando] = useState(false);
+
+    async function handleUpdate(e: React.FormEvent) {
+        e.preventDefault();
+        setSalvando(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            // NOVO: Criando um FormData em vez de JSON
+            const payload = new FormData();
+            payload.append("nome_arquivo", formData.nome_arquivo);
+            payload.append("validade", formData.validade);
+            
+            if (arquivoNovo) {
+                payload.append("file", arquivoNovo);
+            }
+
+            const response = await fetch(`http://127.0.0.1:8001/documentos/${documento.id}`, {
+                method: "PUT",
+                headers: {
+                    // ATENÇÃO: NÃO coloque "Content-Type" aqui quando usar FormData!
+                    "Authorization": `Bearer ${session?.access_token}`
+                },
+                body: payload 
+            });
+
+            if (response.ok) {
+                onSuccess(); 
+                onClose();
+            } else {
+                const errorData = await response.json();
+                console.error(errorData)
+                alert(`Erro ao atualizar: ${JSON.stringify(errorData.detail)}`);
+            }
+        } catch (error) { 
+            alert("Erro ao conectar com o servidor."); 
+        } finally { 
+            setSalvando(false); 
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-black text-gray-800 tracking-tighter">Editar Documento</h2>
+                    <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <form onSubmit={handleUpdate} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Nome do Arquivo</label>
+                        <input required type="text" value={formData.nome_arquivo} onChange={(e) => setFormData({...formData, nome_arquivo: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Data de Validade</label>
+                        <input required type="date" value={formData.validade} onChange={(e) => setFormData({...formData, validade: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    </div>
+
+                    {/* NOVO INPUT DE ARQUIVO */}
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Substituir Arquivo (Opcional)</label>
+                        <input 
+                            type="file" 
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files.length > 0) {
+                                    setArquivoNovo(e.target.files[0]);
+                                    // Bônus: Se subir arquivo novo, já muda o nome sugerido para combinar
+                                    setFormData({...formData, nome_arquivo: e.target.files[0].name});
+                                }
+                            }}
+                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="flex gap-3 mt-8 pt-4 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-all">Cancelar</button>
+                        <button type="submit" disabled={salvando} className="flex-1 py-3 font-black bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-all shadow-lg disabled:opacity-50">
+                            {salvando ? "Salvando..." : "Salvar Alterações"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 function ModalAdicionarRepresentante({ fornecedor, onClose, onSuccess }: any) {
     const [formData, setFormData] = useState({
         nome: "",
-        contato: "", // Mudou de 'telefone' para 'contato' (conforme seu Python)
+        contato: "", 
         email: "",
         atual: true 
     });

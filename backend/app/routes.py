@@ -7,7 +7,7 @@ import uuid
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
-
+from datetime import datetime
 # Importações internas
 from app.fornecedorcrud import FornecedorCRUD
 from app.representantecrud import RepresentanteCRUD
@@ -64,31 +64,38 @@ async def listar_fornecedores_do_produto(id: int, user = Depends(verificar_token
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+from datetime import datetime
+import os
+
 @router.post("/documentos/upload")
 async def upload_documento(
     cnpj: str = Form(...),
     validade: str = Form(...),
+    tipo_documento: str = Form(...),  # Mantemos apenas o tipo_documento
     file: UploadFile = File(...), 
     user = Depends(verificar_token)
 ):
     try:
         cnpj_limpo = "".join(filter(str.isdigit, cnpj))
-        
         document = DocumentoCRUD(get_supabase_client())
         
-        extensao = file.filename.split(".")[-1]
-        caminho_no_bucket = f"{cnpj_limpo}/{uuid.uuid4()}.{extensao}"
+        data_formatada = datetime.now().strftime("%Y%m%d-%H%M%S")
+        nome, extensao = os.path.splitext(file.filename)
+        nome = nome.replace(" ", "_")
+        
+        caminho_no_bucket = f"{cnpj_limpo}/{nome}-{data_formatada}{extensao}"
 
         arquivo_bytes = await file.read()
-        
         document.upload_arquivo(caminho_no_bucket, arquivo_bytes, file.content_type)
+        cnpj_formatado = formatar_cnpj(cnpj_limpo)
         
         dados_documento = {
-            "cnpj_fornecedor": cnpj_limpo,
+            "cnpj_fornecedor": cnpj_formatado,
             "nome_arquivo": file.filename,
             "caminho_storage": caminho_no_bucket,
             "tipo_arquivo": file.content_type,
-            "validade": validade
+            "validade": validade,
+            "tipo_documento": tipo_documento
         }
         
         res_db = document.salvar_metadados(dados_documento)
@@ -104,6 +111,42 @@ async def upload_documento(
     except Exception as e:
         print(f"Erro detalhado: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Erro no upload: {str(e)}")
+
+@router.put("/documentos/{id}")
+async def atualizar_documento(
+    id: int,
+    nome_arquivo: str = Form(...),
+    validade: str = Form(...),
+    file: Optional[UploadFile] = File(None), 
+    user = Depends(verificar_token)
+):
+    try:
+        dados = {
+            "nome_arquivo": nome_arquivo,
+            "validade": validade
+        }
+        
+        novo_arquivo_bytes = None
+        filename = None
+        content_type = None
+
+        if file and file.filename:
+            novo_arquivo_bytes = await file.read()
+            filename = file.filename
+            content_type = file.content_type
+
+        return DocumentoCRUD(get_supabase_client()).atualizar_documento(
+            id, dados, novo_arquivo_bytes, filename, content_type
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/documentos/{id}")
+async def deletar_documento(id: int, user = Depends(verificar_token)):
+    try:
+        return DocumentoCRUD(get_supabase_client()).deletar_documento(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/fornecedores/{cnpj}/documentos")
 async def listar_documentos_fornecedor(cnpj: str, user = Depends(verificar_token)):

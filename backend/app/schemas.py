@@ -42,7 +42,7 @@ class DocumentosSchema(BaseModel):
     caminho_storage: str   
     tipo_arquivo: str
     validade: str
-    representante_upload: str
+    tipo_documento: str
     
     
     

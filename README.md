@@ -63,3 +63,17 @@ Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do
 . no cmd insirisa: npm run dev
 
 .O sistema estará disponível no seu navegador em http://localhost:3000.
+
+## Atenção:
+### 1. Erro: "O termo 'python' ou 'pip' não é reconhecido..."
+* **O que significa:** O Windows não sabe onde o Python está instalado, ou ele não foi adicionado à variável `PATH` do sistema.
+* **Como resolver:** 1. Se você usa Linux ou Mac, tente usar os comandos `python3` e `pip3` em vez de apenas `python` e `pip`.
+  2. No Windows, reinstale o Python e, na primeira tela do instalador, marque a caixa **"Add Python to PATH"**. Reinicie o terminal e tente novamente.
+
+### 2. Erro: "O termo 'npm' ou 'node' não é reconhecido..."
+* **O que significa:** O Node.js não está instalado no seu computador ou não está no `PATH`.
+* **Como resolver:** Acesse o site oficial do [Node.js](https://nodejs.org/), baixe a versão **LTS** e faça a instalação padrão (ela já adiciona o Node ao PATH automaticamente). Após instalar, feche e abra o terminal novamente.
+
+### 3. Erro: "Port already in use" (Porta em uso)
+* **O que significa:** As portas `3000` (Front-end) ou `8001` (Back-end) já estão sendo usadas por outro programa ou por uma execução anterior do projeto que não foi fechada corretamente.
+* **Como resolver:** Feche todos os terminais abertos no seu VS Code ou reinicie o computador para limpar os processos travados na memória, e rode os servidores novamente.

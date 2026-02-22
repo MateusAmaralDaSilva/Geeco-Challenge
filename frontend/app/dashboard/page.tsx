@@ -146,7 +146,7 @@ export default function DashboardPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input type="text" placeholder={`O que você está procurando em ${view}?`} className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-gray-900 font-bold placeholder:text-gray-400 transition-all shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
-                        <Link href="/consulta" className="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-black transition-all shadow-lg active:scale-95"><Sparkles size={18} /> BUSCA IA</Link>
+                        <Link href="/IA" className="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-black transition-all shadow-lg active:scale-95"><Sparkles size={18} /> BUSCA IA</Link>
                     </div>
 
                     {view === "fornecedores" && (

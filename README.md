@@ -16,53 +16,53 @@
 Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do [Python 3](https://www.python.org/) instalados em sua máquina.
 
 ### 1. Clonando o Repositório
-. git clone https://github.com/MateusAmaralDaSilva/Geeco-Challenge.git
-. cd Geeco-Challenge
+git clone https://github.com/MateusAmaralDaSilva/Geeco-Challenge.git
+cd Geeco-Challenge
 
 ### 2. Configurando o Back-end (FastAPI)
-. Abra um terminal e navegue até a pasta backend:
-. cd backend
+Abra um terminal e navegue até a pasta backend:
+cd backend
 
 ### 3. Criando um ambiente virtual (opcional)
 
 # Windows
-. python -m venv venv
-. .\venv\Scripts\activate
+python -m venv venv
+.\venv\Scripts\activate
 # Linux/Mac
-. python3 -m venv venv
-. source venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 
 
 ### 4. Instale as bibliotecas da aplicação
-. pip install -r requirements.txt
+pip install -r requirements.txt
 
 ### 5. Crie um arquivo .env na raiz da pasta backend com as seguintes chaves:
-. SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
+SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
 
-.SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidHRxdnNyc3BoYm5qaWp0aGdjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTA4Mjk3MywiZXhwIjoyMDg2NjU4OTczfQ.091YXX4bs9uzaE7V098P_mgPUY1i3S3sp9w-vhvVjl4
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidHRxdnNyc3BoYm5qaWp0aGdjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTA4Mjk3MywiZXhwIjoyMDg2NjU4OTczfQ.091YXX4bs9uzaE7V098P_mgPUY1i3S3sp9w-vhvVjl4
 
-. JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
+JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
 
-. GEMINI_API_KEY=AIzaSyCdJNB7EHxp1cnGKy0cD2Kq_6y6fD1CyBY
+GEMINI_API_KEY=AIzaSyCdJNB7EHxp1cnGKy0cD2Kq_6y6fD1CyBY
 
 ### 6. Inicie o servidor:
-. uvicorn app.main:app --reload --port 8001
+uvicorn app.main:app --reload --port 8001
 
 ### 7. Configurando front-end:
-. Baixe as dependências com
-. npm install
+Baixe as dependências com
+npm install
 
 ### 8. Crie um arquivo .env.local na raiz da pasta frontend com as seguintes chaves:
-. NEXT_PUBLIC_SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
 
-. NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_inDVkxyDnaeFABFZOJQ74w__hDKuUyP
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_inDVkxyDnaeFABFZOJQ74w__hDKuUyP
 
-. NEXT_PUBLIC_JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
+NEXT_PUBLIC_JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
 
 ### 9. Execute o front-end
-. no cmd insirisa: npm run dev
+no cmd insirisa: npm run dev
 
-.O sistema estará disponível no seu navegador em http://localhost:3000.
+O sistema estará disponível no seu navegador em http://localhost:3000.
 
 ## Atenção:
 ### 1. Erro: "O termo 'python' ou 'pip' não é reconhecido..."

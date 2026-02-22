@@ -61,4 +61,5 @@ Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do
 
 ### 9. Execute o front-end
 . no cmd insirisa: npm run dev
+
 .O sistema estará disponível no seu navegador em http://localhost:3000.

@@ -8,7 +8,7 @@
 * **Python + FastAPI** - Criação ágil e de alta performance da API Rest.
 * **Supabase (PostgreSQL + Storage)** - Banco de dados e armazenamento de documentos.
 * **Google GenAI (Gemini 1.5 Flash)** - Motor de Inteligência Artificial para o Chatbot.
-* **Pydantic** - Validação rigorosa de dados.
+* **Pydantic** - Validação de dados.
 * **BrazilCEP** - Integração para busca automática de endereços.
 
 ##  Como executar o projeto localmente

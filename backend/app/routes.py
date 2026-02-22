@@ -8,7 +8,11 @@ from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime
+from google import genai
+from pydantic import BaseModel
+import os
 # Importações internas
+from app.database import get_supabase_client
 from app.fornecedorcrud import FornecedorCRUD
 from app.representantecrud import RepresentanteCRUD
 from app.produtocrud import ProdutoCRUD
@@ -18,14 +22,15 @@ from app.schemas import (
     FornecedorSchema, RepresentanteSchema, RepresentanteCreateSchema, 
     ProdutoSchema, ProdutoCreateSchema, ProdutoFornecedorSchema, DocumentosSchema
 )
-from app.database import get_supabase_client
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 router = APIRouter()
 security = HTTPBearer()
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
+
+class PerguntaChat(BaseModel):
+    pergunta: str
 # --- UTILITÁRIOS ---
 
 def formatar_cnpj(cnpj: str) -> str:
@@ -273,3 +278,66 @@ async def atualizar_produto(id: int, produto: ProdutoSchema, user = Depends(veri
 @router.delete("/produtos/{id}")
 async def deletar_produto(id: int, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).deletar_produto(id)
+
+
+# --- CHATBOT SIMPLES (INJEÇÃO DE CONTEXTO) ---
+
+@router.post("/IA")
+async def conversar_com_ia(payload: PerguntaChat, user = Depends(verificar_token)):
+    try:
+        # Puxa a chave direto do .env de forma segura
+        chave_api = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not chave_api:
+            return {"resposta": "Erro interno: Chave da IA não encontrada."}
+
+        db = get_supabase_client()
+        pergunta = payload.pergunta
+
+        fornecedores = FornecedorCRUD(db).buscar_fornecedor()
+
+        if not fornecedores:
+            return {"resposta": "Ainda não há fornecedores cadastrados na base."}
+
+        vinculos_crud = ProdutoFornecedorCRUD(db)
+
+        dados_excel_em_texto = "CNPJ | Empresa | Categoria | Localização | Descrição | Produtos Fornecidos\n"
+        dados_excel_em_texto += "-" * 100 + "\n"
+        
+        for f in fornecedores:
+            cnpj = f.get('cnpj')
+            try:
+                produtos_db = vinculos_crud.buscar_produto_fornecedor(cnpj_fornecedor=cnpj)
+                if produtos_db:
+                    nomes_produtos = [p.get('nome', f"Produto #{p.get('id_produto', '')}") for p in produtos_db]
+                    produtos_str = ", ".join(nomes_produtos)
+                else:
+                    produtos_str = "Nenhum produto vinculado"
+            except Exception as e:
+                produtos_str = "Desconhecido"
+
+            dados_excel_em_texto += f"{cnpj} | {f.get('empresa')} | {f.get('categoria')} | {f.get('localização')} | {f.get('descrição')} | {produtos_str}\n"
+
+        prompt_final = f"""Você é um assistente virtual especialista na nossa base de fornecedores e produtos.
+        Abaixo está a nossa planilha de dados completa e atualizada, contendo o fornecedor e o que ele fornece.
+        PLANILHA DE DADOS:
+        {dados_excel_em_texto}
+        Instruções:
+        - Responda à pergunta do usuário usando APENAS os dados da planilha acima.
+        - Seja claro, direto, amigável e profissional.
+        - Se a resposta não estiver na planilha, diga gentilmente que não encontrou essa informação. Não invente ou presuma nada.
+        Pergunta do usuário: {pergunta}"""
+
+        client = genai.Client(api_key=chave_api)
+        resposta_ia = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt_final,
+        )
+
+        return {
+            "resposta": resposta_ia.text,
+            "linhas_lidas": len(fornecedores)
+        }
+
+    except Exception as e:
+        print(f"Erro na IA: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao processar a pergunta com a IA.")

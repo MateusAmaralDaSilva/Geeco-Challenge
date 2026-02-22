@@ -11,7 +11,7 @@
 * **Pydantic** - Validação rigorosa de dados.
 * **BrazilCEP** - Integração para busca automática de endereços.
 
-## ⚙️ Como executar o projeto localmente
+##  Como executar o projeto localmente
 
 Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do [Python 3](https://www.python.org/) instalados em sua máquina.
 

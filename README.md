@@ -16,7 +16,7 @@
 Para rodar este projeto, você precisará do [Node.js](https://nodejs.org/) e do [Python 3](https://www.python.org/) instalados em sua máquina.
 
 ### 1. Clonando o Repositório
-git clone [https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git](https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git)
+git clone https://github.com/MateusAmaralDaSilva/Geeco-Challenge.git
 cd Geeco-Challenge
 
 ### 2. Configurando o Back-end (FastAPI)

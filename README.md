@@ -54,6 +54,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://xbttqvsrsphbnjijthgc.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_inDVkxyDnaeFABFZOJQ74w__hDKuUyP
 NEXT_PUBLIC_JWT_SECRET=6d05ecb7-a60c-461d-9ac0-f02e91fb3e7e
 
-### 9. 
+### 9. Execute o front-end
 npm run dev
 O sistema estará disponível no seu navegador em http://localhost:3000.

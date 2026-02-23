@@ -13,11 +13,11 @@ from pydantic import BaseModel
 import os
 # Importações internas
 from app.database import get_supabase_client
-from app.fornecedorcrud import FornecedorCRUD
-from app.representantecrud import RepresentanteCRUD
-from app.produtocrud import ProdutoCRUD
-from app.produtofornecedocrud import ProdutoFornecedorCRUD
-from app.documentoscrud import DocumentoCRUD
+from app.crud.fornecedorcrud import FornecedorCRUD
+from app.crud.representantecrud import RepresentanteCRUD
+from app.crud.produtocrud import ProdutoCRUD
+from app.crud.produtofornecedocrud import ProdutoFornecedorCRUD
+from app.crud.documentoscrud import DocumentoCRUD
 from app.schemas import (
     FornecedorSchema, RepresentanteSchema, RepresentanteCreateSchema, 
     ProdutoSchema, ProdutoCreateSchema, ProdutoFornecedorSchema, DocumentosSchema
@@ -59,7 +59,7 @@ async def listar_produtos_fornecedor(cnpj: str, user = Depends(verificar_token))
     try:
         return ProdutoFornecedorCRUD(get_supabase_client()).buscar_produto_fornecedor(cnpj_fornecedor=formatar_cnpj(cnpj))
     except Exception as e:
-        print(f"🔴 ERRO AO BUSCAR PRODUTOS: {str(e)}") # Isso vai aparecer na tela preta do terminal
+        print(f"🔴 ERRO AO BUSCAR PRODUTOS: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/produtos/{id}/fornecedores")
@@ -76,7 +76,7 @@ import os
 async def upload_documento(
     cnpj: str = Form(...),
     validade: str = Form(...),
-    tipo_documento: str = Form(...),  # Mantemos apenas o tipo_documento
+    tipo_documento: str = Form(...),
     file: UploadFile = File(...), 
     user = Depends(verificar_token)
 ):
@@ -280,7 +280,7 @@ async def deletar_produto(id: int, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).deletar_produto(id)
 
 
-# --- CHATBOT SIMPLES (INJEÇÃO DE CONTEXTO) ---
+# --- CHATBOT (INJEÇÃO DE CONTEXTO) ---
 
 @router.post("/IA")
 async def conversar_com_ia(payload: PerguntaChat, user = Depends(verificar_token)):

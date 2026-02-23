@@ -24,17 +24,17 @@ export default function NovoFornecedor() {
 
     // --- LÓGICA DE AUTOCOMPLETE DINÂMICO ---
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
-    // Em vez de uma lista estática, agora temos um state que será preenchido pela API
+
     const [categoriasDoBanco, setCategoriasDoBanco] = useState<string[]>([]);
     const categoriaRef = useRef<HTMLDivElement>(null);
     
-    // Filtra as categorias (que vieram do banco) com base no que o usuário digitou
+    // Filtro das categorias 
     const sugestoesFiltradas = categoriasDoBanco.filter(cat => 
         cat.toLowerCase().includes(formData.categoria.toLowerCase()) && 
         cat !== formData.categoria
     );
 
-    // Função para capitalizar a primeira letra de cada palavra
+    // Função para deixar maiúsculo a primeira letra de cada palavra
     const formatarCategoria = (texto: string) => {
         return texto.toLowerCase().replace(/(?:^|\s)\S/g, function(a) {
             return a.toUpperCase();
@@ -51,14 +51,12 @@ export default function NovoFornecedor() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-    // --------------------------------------------------
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // useEffect Atualizado: Agora ele pega o Token E busca as categorias
     useEffect(() => {
         let isMounted = true;
 
@@ -72,7 +70,6 @@ export default function NovoFornecedor() {
             const accessToken = session.access_token;
             setToken(accessToken);
 
-            // NOVO: Busca todos os fornecedores para extrair as categorias únicas
             try {
                 const res = await fetch(`http://127.0.0.1:8001/fornecedores`, {
                     headers: { "Authorization": `Bearer ${accessToken}` }
@@ -82,14 +79,12 @@ export default function NovoFornecedor() {
                     const dados = await res.json();
                     const listaFornecedores = Array.isArray(dados) ? dados : (dados.data || []);
                     
-                    // Mapeia todas as categorias, remove vazias, e cria um Set (conjunto) para tirar as duplicadas
                     const categoriasUnicas = Array.from(new Set(
                         listaFornecedores
                             .map((f: any) => f.categoria)
                             .filter((cat: any) => cat && cat.trim() !== "")
                     ));
                     
-                    // Ordena alfabeticamente para ficar bonito
                     if (isMounted) {
                         setCategoriasDoBanco(categoriasUnicas.sort() as string[]);
                     }
@@ -173,7 +168,7 @@ export default function NovoFornecedor() {
                     localização: formData.localização,
                     link_site: formData.link_site,
                     descrição: formData.descrição,
-                    categoria: categoriaFinal, // Usa a categoria validada
+                    categoria: categoriaFinal,
                     favorito: formData.favorito
                 }
             };

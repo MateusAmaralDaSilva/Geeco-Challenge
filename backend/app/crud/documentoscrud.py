@@ -16,7 +16,6 @@ class DocumentoCRUD:
         self.bucket = "Documentos"
 
     def salvar_metadados(self, dados: dict):
-        """Salva as informações do arquivo na tabela SQL"""
         return self.supabase.table(self.table).insert(dados).execute()
 
     def upload_arquivo(self, caminho_destino: str, arquivo_bytes: bytes, content_type: str):
@@ -45,14 +44,13 @@ class DocumentoCRUD:
             # Pega as informações do documento no banco antes de apagar
             doc_info = self.supabase.table(self.table).select("caminho_storage").eq("id", doc_id).execute()
             
-            # Se o documento existir e tiver um caminho físico, apagamos do Bucket
+            # Se o documento existir e tiver um caminho físico, apaga no Bucket
             if doc_info.data and doc_info.data[0].get("caminho_storage"):
                 caminho_fisico = doc_info.data[0]["caminho_storage"]
                 
-                # CORREÇÃO: Usando self.bucket ("Documentos" com D maiúsculo)
                 self.supabase.storage.from_(self.bucket).remove([caminho_fisico])
 
-            # Agora sim, apagamos o registro do banco de dados (CRUD)
+            # Apaga registro no banco de dados
             self.supabase.table(self.table).delete().eq("id", doc_id).execute()
             
             return {"message": "Documento apagado do banco e do bucket com sucesso!"}

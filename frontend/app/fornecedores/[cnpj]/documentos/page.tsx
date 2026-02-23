@@ -101,7 +101,7 @@ export default function PaginaUploadDocumentos() {
                             </label>
                         </div>
 
-                        {/* Grid otimizado: Tipo e Validade lado a lado */}
+                        {/* Grid  */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest mb-2 italic">

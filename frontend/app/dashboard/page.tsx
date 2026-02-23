@@ -202,7 +202,7 @@ export default function DashboardPage() {
                                         <td className="p-5 font-bold text-gray-900 text-lg group-hover:text-emerald-700">{p.nome}</td>
                                         <td className="p-5 text-gray-400 font-mono text-sm tracking-tighter">{p.id.toString().padStart(4, '0')}</td>
                                         <td className="p-5 text-center">
-                                            {/* --- BOTÃO TRANSFORMADO EM LINK PARA A NOVA PÁGINA --- */}
+                                            {/* --- LINK PARA A NOVA PÁGINA --- */}
                                             <Link href={`/produtos/${p.id}`} className="inline-block bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-600 transition shadow-md">
                                                 VER FORNECEDORES
                                             </Link>

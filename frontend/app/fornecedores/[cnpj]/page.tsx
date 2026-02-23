@@ -447,7 +447,7 @@ export default function DetalhesFornecedor() {
                                         >
                                             <Download size={18} />
                                         </a>
-                                        {/* NOVO BOTÃO DE EDITAR DOCUMENTO */}
+                                        {/*  BOTÃO DE EDITAR DOCUMENTO */}
                                         <button 
                                             onClick={() => setDocumentoSendoEditado(doc)}
                                             className="p-3 text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors"
@@ -455,7 +455,7 @@ export default function DetalhesFornecedor() {
                                         >
                                             <Edit size={18} />
                                         </button>
-                                        {/* NOVO BOTÃO DE DELETAR DOCUMENTO */}
+                                        {/* BOTÃO DE DELETAR DOCUMENTO */}
                                         <button 
                                             onClick={() => deletarDocumento(doc.id, doc.nome_arquivo)}
                                             className="p-3 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-colors"
@@ -590,7 +590,7 @@ function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
                         <input required type="date" value={formData.validade} onChange={(e) => setFormData({...formData, validade: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                     </div>
 
-                    {/* NOVO INPUT DE ARQUIVO */}
+                    {/* INPUT DE ARQUIVO */}
                     <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Substituir Arquivo (Opcional)</label>
                         <input 
@@ -598,7 +598,7 @@ function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
                             onChange={(e) => {
                                 if (e.target.files && e.target.files.length > 0) {
                                     setArquivoNovo(e.target.files[0]);
-                                    // Bônus: Se subir arquivo novo, já muda o nome sugerido para combinar
+                                    // Atualiza o nome do arquivo no formulário para refletir o novo arquivo selecionado
                                     setFormData({...formData, nome_arquivo: e.target.files[0].name});
                                 }
                             }}

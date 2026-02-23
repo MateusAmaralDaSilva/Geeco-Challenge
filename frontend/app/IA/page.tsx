@@ -5,7 +5,6 @@ import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles } from "lucide-react";
 
-// Tipagem para as mensagens do chat
 type Message = {
     id: string;
     role: "user" | "ai";
@@ -23,7 +22,6 @@ export default function PaginaConsultaIA() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     
-    // Referência para rolar o chat para baixo automaticamente
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const supabase = createBrowserClient(
@@ -31,7 +29,6 @@ export default function PaginaConsultaIA() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // Efeito para rolar para a última mensagem sempre que a lista mudar
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);

@@ -100,27 +100,53 @@ export default function NovoFornecedor() {
     }, [router, supabase]);
 
     const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value.replace(/\D/g, "");
-        if (value.length > 8) value = value.slice(0, 8);
-        if (value.length > 5) {
-            value = value.replace(/^(\d{5})(\d{1,3}).*/, "$1-$2");
-        }
-        setFormData({ ...formData, cep_input: value });
-    };
+    let valor = e.target.value.replace(/\D/g, '');
+    if (valor.length > 5) {
+        valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+    }
+    setFormData(prev => ({ ...prev, cep_input: valor }));
+    const numerosLimpos = valor.replace(/\D/g, '');
+    if (numerosLimpos.length === 8) {
+        buscarCEP(numerosLimpos);
+    }
+};
 
-    const buscarCEP = async (cep: string) => {
+const buscarCEP = async (cep: string) => {
         const cepLimpo = cep.replace(/\D/g, '');
+        
         if (cepLimpo.length === 8) {
             try {
-                const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-                const data = await res.json();
-                if (!data.erro) {
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        localização: `${data.localidade} - ${data.uf}`
-                    }));
+                const resViaCep = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+                if (!resViaCep.ok) throw new Error("ViaCEP fora do ar");
+                
+                const dataViaCep = await resViaCep.json();
+                
+                if (dataViaCep.erro) throw new Error("CEP não encontrado no ViaCEP");
+
+                setFormData(prev => ({ 
+                    ...prev, 
+                    localização: `${dataViaCep.localidade} - ${dataViaCep.uf}`
+                }));
+                
+            } catch (errViaCep) { 
+                console.log("ViaCEP falhou, acionando redundância (BrasilAPI)..."); 
+                
+                try {
+                    const resBrasilApi = await fetch(`https://brasilapi.com.br/api/cep/v1/${cepLimpo}`);
+                    if (!resBrasilApi.ok) throw new Error("BrasilAPI fora do ar");
+                    
+                    const dataBrasilApi = await resBrasilApi.json();
+                    
+                    if (dataBrasilApi.city && dataBrasilApi.state) {
+                        setFormData(prev => ({ 
+                            ...prev, 
+                            localização: `${dataBrasilApi.city} - ${dataBrasilApi.state}`
+                        }));
+                    }
+                } catch (errBrasilApi) {
+                    console.log("Aviso: Nenhuma das APIs de CEP conseguiu responder no momento.");
                 }
-            } catch (err) { console.error("Erro ao buscar CEP"); }
+            }
         }
     };
 
@@ -250,10 +276,9 @@ export default function NovoFornecedor() {
                                 <div>
                                     <input 
                                         placeholder="00000-000"
-                                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-black text-gray-900 tracking-wider transition-all placeholder:text-gray-300 placeholder:font-medium"
+                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-black text-gray-900 tracking-wider transition-all placeholder:text-gray-400"
                                         value={formData.cep_input}
                                         onChange={handleCepChange}
-                                        onBlur={e => buscarCEP(e.target.value)}
                                         maxLength={9}
                                     />
                                 </div>

@@ -155,7 +155,7 @@ export default function DetalhesFornecedor() {
         } catch (error) { alert("Erro de conexão ao tentar excluir contato."); }
     }
 
-    // NOVA FUNÇÃO: Deletar Documento
+    // Deletar Documento
     async function deletarDocumento(idDoc: number, nomeArquivo: string) {
         const confirmacao = window.confirm(`Tem certeza que deseja apagar o arquivo "${nomeArquivo}"?`);
         if (!confirmacao) return;
@@ -786,36 +786,53 @@ function ModalEditarFornecedor({ fornecedor, onClose, onSuccess }: any) {
         e.preventDefault();
         setSalvando(true);
         try {
+            // Usa o cliente Supabase global (que está no topo do seu arquivo)
             const { data: { session } } = await supabase.auth.getSession();
-            const cnpjLimpo = fornecedor.cnpj.replace(/\D/g, '');
+            
+            // Pega o CNPJ da URL (que já vem do banco) e limpa para colocar no endereço da API
+            const cnpjLimpoUrl = fornecedor.cnpj.replace(/\D/g, '');
 
-            const response = await fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}`, {
+            // 🛠️ O PAYLOAD BLINDADO PARA EVITAR O ERRO 400:
+            const payload = {
+                ...formData,
+                // 1. Limpa os pontos e barras do CNPJ antes de mandar para o banco (deixa só números)
+                cnpj: formData.cnpj.replace(/\D/g, ''),
+                
+                // 2. Garante que o site vai como 'null' se o campo estiver vazio, evitando erro de URL inválida
+                link_site: formData.link_site && formData.link_site.trim() !== "" ? formData.link_site : null
+            };
+
+            const response = await fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpoUrl}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${session?.access_token}`
                 },
-                body: JSON.stringify(formData) 
+                body: JSON.stringify(payload) 
             });
 
             if (response.ok) {
-                alert("Dados atualizados com sucesso!");
-                onSuccess(formData); 
+                alert("Fornecedor atualizado com sucesso!");
+                onSuccess(payload); // Atualiza os dados instantaneamente na tela
                 onClose();
             } else {
                 const errorData = await response.json();
-                alert(`Erro ao atualizar: ${errorData.detail}`);
+                console.error("Erro do Backend:", errorData);
+                alert(`Erro ao atualizar: ${JSON.stringify(errorData.detail)}`);
             }
-        } catch (error) { alert("Erro ao conectar com o servidor."); } 
-        finally { setSalvando(false); }
+        } catch (error) { 
+            alert("Erro ao conectar com o servidor."); 
+        } finally { 
+            setSalvando(false); 
+        }
     }
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-black text-gray-800 italic tracking-tighter">Editar Fornecedor</h2>
-                    <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Editar Fornecedor</h2>
+                    <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -823,37 +840,44 @@ function ModalEditarFornecedor({ fornecedor, onClose, onSuccess }: any) {
                 <form onSubmit={handleUpdate} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Empresa</label>
-                            <input required type="text" value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold" />
+                            {/* Textos mais escuros e bordas com maior contraste */}
+                            <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">Empresa</label>
+                            <input required type="text" value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                         </div>
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Categoria</label>
-                            <input required type="text" value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold" />
+                            <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">CNPJ</label>
+                            <input required type="text" value={formData.cnpj} onChange={(e) => setFormData({...formData, cnpj: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">Categoria</label>
+                            <input required type="text" value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">CEP / Localização</label>
+                            <input required type="text" value={formData.localização} onChange={(e) => setFormData({...formData, localização: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CEP / Localização</label>
-                        <input required type="text" value={formData.localização} onChange={(e) => setFormData({...formData, localização: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold" />
+                        <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">Link do Site (Opcional)</label>
+                        <input type="url" value={formData.link_site || ""} onChange={(e) => setFormData({...formData, link_site: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="https://..." />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Link do Site</label>
-                        <input type="url" value={formData.link_site} onChange={(e) => setFormData({...formData, link_site: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold" placeholder="https://..." />
+                        <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">Descrição</label>
+                        <textarea rows={4} value={formData.descrição} onChange={(e) => setFormData({...formData, descrição: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-medium text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                     </div>
 
-                    <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Descrição</label>
-                        <textarea rows={4} value={formData.descrição} onChange={(e) => setFormData({...formData, descrição: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-medium" />
-                    </div>
-
-                    <label className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl cursor-pointer group hover:bg-emerald-100 transition-colors">
+                    <label className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer group hover:bg-emerald-100 transition-colors">
                         <input type="checkbox" checked={formData.favorito} onChange={(e) => setFormData({...formData, favorito: e.target.checked})} className="w-5 h-5 accent-emerald-600 rounded" />
-                        <span className="font-bold text-emerald-800">Marcar como Fornecedor Preferencial</span>
+                        <span className="font-bold text-emerald-900">Marcar como Fornecedor Preferencial</span>
                     </label>
 
-                    <div className="flex gap-3 mt-8 pt-4 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="flex-1 py-3 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-all">Cancelar</button>
+                    <div className="flex gap-3 mt-8 pt-4 border-t border-gray-200">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-all">Cancelar</button>
                         <button type="submit" disabled={salvando} className="flex-1 py-3 font-black bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-all shadow-lg disabled:opacity-50">
                             {salvando ? "Salvando..." : "Salvar Alterações"}
                         </button>

@@ -5,7 +5,7 @@ class FornecedorSchema(BaseModel):
     cnpj: str
     empresa: str
     localização: str 
-    link_site: str
+    link_site: Optional[str] = None
     descrição: str
     categoria: str
     favorito: bool

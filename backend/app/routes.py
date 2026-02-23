@@ -219,8 +219,9 @@ async def buscar_fornecedor_por_cnpj(cnpj: str, user = Depends(verificar_token))
 async def atualizar_fornecedor(cnpj: str, fornecedor: FornecedorSchema, user = Depends(verificar_token)):
     try:
         cnpj_f = formatar_cnpj(cnpj)
-        endereco = brazilcep.get_address_from_cep(fornecedor.localização)
-        fornecedor.localização = f"{endereco['city']} - {endereco['uf']}"
+        fornecedor.cnpj = cnpj_f
+        cidade, uf = fornecedor.localização.split(" - ")
+        fornecedor.localização = f"{cidade} - {uf}"
         return FornecedorCRUD(get_supabase_client()).atualizar_fornecedor(cnpj_f, fornecedor.model_dump())
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro na atualização: {str(e)}")

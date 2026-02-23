@@ -297,13 +297,19 @@ function ModalEditarProduto({ produto, onClose, onSuccess, supabase }: any) {
         setSalvando(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
+            
+            const payload = {
+                id: produto.id,
+                nome: formData.nome
+            };
+
             const response = await fetch(`http://127.0.0.1:8001/produtos/${produto.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${session?.access_token}`
                 },
-                body: JSON.stringify(formData) 
+                body: JSON.stringify(payload) 
             });
 
             if (response.ok) {
@@ -325,26 +331,26 @@ function ModalEditarProduto({ produto, onClose, onSuccess, supabase }: any) {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-black text-gray-800 italic tracking-tighter">Editar Material</h2>
-                    <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Editar Material</h2>
+                    <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
                 
                 <form onSubmit={handleUpdate} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Nome do Item</label>
+                        <label className="block text-xs font-black text-gray-700 uppercase tracking-widest mb-1">Nome do Item</label>
                         <input 
                             required 
                             type="text" 
                             value={formData.nome} 
                             onChange={(e) => setFormData({...formData, nome: e.target.value})} 
-                            className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
+                            className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
                         />
                     </div>
 
-                    <div className="flex gap-3 mt-8 pt-4 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="flex-1 py-3 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-all">Cancelar</button>
+                    <div className="flex gap-3 mt-8 pt-4 border-t border-gray-200">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-all">Cancelar</button>
                         <button type="submit" disabled={salvando} className="flex-1 py-3 font-black bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-all shadow-lg disabled:opacity-50">
                             {salvando ? "Salvando..." : "Salvar"}
                         </button>

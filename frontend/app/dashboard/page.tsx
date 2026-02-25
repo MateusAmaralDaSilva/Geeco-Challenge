@@ -4,15 +4,8 @@ import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { 
-    PlusCircle, 
-    Search, 
-    Star, 
-    LogOut, 
-    Sparkles, 
-    MapPin, 
-    Filter, 
-    Package, 
-    Users
+    PlusCircle, Search, Star, LogOut, 
+    Sparkles, MapPin, Filter, Package, Users
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -49,7 +42,7 @@ export default function DashboardPage() {
                     "Authorization": `Bearer ${session.access_token}`,
                     "Cache-Control": "no-store"
                 };
-
+                
                 const [resFornecedores, resProdutos] = await Promise.all([
                     fetch("http://127.0.0.1:8001/fornecedores", { headers }),
                     fetch("http://127.0.0.1:8001/produtos", { headers })
@@ -65,7 +58,7 @@ export default function DashboardPage() {
                 if (resProdutos.ok) {
                     const jsonP = await resProdutos.json();
                     const arrayP = Array.isArray(jsonP) ? jsonP : (jsonP.data || []);
-                    const produtosOrdenados = arrayP.sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+                    const produtosOrdenados = arrayP.sort((a: any, b: any) => (a.nome || "").localeCompare(b.nome || ""));
                     if (isMounted) setProdutos(produtosOrdenados);
                 }
 
@@ -80,22 +73,29 @@ export default function DashboardPage() {
         return () => { isMounted = false; };
     }, [supabase]);
 
-    // Lógicas de Filtro
     const fornecedoresFiltrados = fornecedores.filter(f => {
-        const matchesSearch = f.empresa.toLowerCase().includes(searchTerm.toLowerCase()) || f.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+        const empresaStr = f.empresa || "";
+        const categoriaStr = f.categoria || "";
+        
+        const matchesSearch = empresaStr.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            categoriaStr.toLowerCase().includes(searchTerm.toLowerCase());
+                            
         const matchesStatus = filterStatus === "todos" ? true : (filterStatus === "preferencial" ? f.favorito : !f.favorito);
         const ufDaLinha = f.localização?.split("-").pop()?.trim();
         const matchesUf = filterUf === "todos" ? true : ufDaLinha === filterUf;
+        
         return matchesSearch && matchesStatus && matchesUf;
     });
 
-    const produtosFiltrados = produtos.filter(p => p.nome.toLowerCase().includes(searchTerm.toLowerCase()));
+    const produtosFiltrados = produtos.filter(p => {
+        const nomeStr = p.nome || "";
+        return nomeStr.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     const ufsDisponiveis = Array.from(new Set(fornecedores.map(f => f.localização?.split("-").pop()?.trim()).filter(Boolean))).sort() as string[];
 
     if (loading) return <div className="flex h-screen items-center justify-center bg-gray-50 text-emerald-700 font-black animate-pulse text-2xl">CARREGANDO GEECO MANAGER...</div>;
 
-    // Lógica para o botão dinâmico
     const hrefNovoCadastro = view === "fornecedores" ? "/fornecedores/cadastro" : "/produtos/cadastro";
     const textoNovoCadastro = view === "fornecedores" ? "Novo Fornecedor" : "Novo Produto";
 
@@ -133,9 +133,9 @@ export default function DashboardPage() {
                         </h1>
                         <p className="text-gray-500 font-bold mt-2">Visualizando {view === "fornecedores" ? "base de fornecedores" : "lista de materiais"}</p>
                     </div>
-                    <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-sm">
-                        <span className="text-gray-500 font-medium">Usuário: </span>
-                        <span className="text-emerald-700 font-black">{user?.email}</span>
+                    <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-200 text-sm">
+                        <span className="text-gray-600 font-medium">Usuário: </span>
+                        <span className="text-emerald-800 font-black">{user?.email}</span>
                     </div>
                 </header>
 
@@ -143,21 +143,22 @@ export default function DashboardPage() {
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 mb-8 space-y-4">
                     <div className="flex gap-4">
                         <div className="relative flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input type="text" placeholder={`O que você está procurando em ${view}?`} className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-gray-900 font-bold placeholder:text-gray-400 transition-all shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                            {/* Input com borda 300 e texto mais contrastante */}
+                            <input type="text" placeholder={`O que você está procurando em ${view}?`} className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-gray-900 font-bold placeholder:text-gray-500 transition-all shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <Link href="/IA" className="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-black transition-all shadow-lg active:scale-95"><Sparkles size={18} /> BUSCA IA</Link>
                     </div>
 
                     {view === "fornecedores" && (
                         <div className="flex flex-wrap gap-4 items-center text-xs animate-in slide-in-from-top-2 duration-300">
-                            <div className="flex items-center gap-2 text-gray-400 uppercase font-black tracking-widest"><Filter size={14} /> Filtrar:</div>
-                            <select className="p-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-800 font-bold outline-none focus:ring-2 focus:ring-emerald-500" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                            <div className="flex items-center gap-2 text-gray-500 uppercase font-black tracking-widest"><Filter size={14} /> Filtrar:</div>
+                            <select className="p-2.5 border border-gray-300 rounded-xl bg-gray-50 text-gray-900 font-bold outline-none focus:ring-2 focus:ring-emerald-500" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                                 <option value="todos">Todos Status</option>
                                 <option value="preferencial">Preferenciais</option>
                                 <option value="comum">Comuns</option>
                             </select>
-                            <select className="p-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-800 font-bold outline-none focus:ring-2 focus:ring-emerald-500" value={filterUf} onChange={(e) => setFilterUf(e.target.value)}>
+                            <select className="p-2.5 border border-gray-300 rounded-xl bg-gray-50 text-gray-900 font-bold outline-none focus:ring-2 focus:ring-emerald-500" value={filterUf} onChange={(e) => setFilterUf(e.target.value)}>
                                 <option value="todos">Todos Estados</option>
                                 {ufsDisponiveis.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                             </select>
@@ -168,41 +169,40 @@ export default function DashboardPage() {
                 {/* Tabela Principal */}
                 <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-200">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50/50 border-b border-gray-100">
+                        <thead className="bg-gray-50/50 border-b border-gray-200">
                             {view === "fornecedores" ? (
                                 <tr>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">Empresa</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">Categoria</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">Localização</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">Status</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">Ações</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest">Empresa</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest">Categoria</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest">Localização</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest text-center">Status</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest text-center">Ações</th>
                                 </tr>
                             ) : (
                                 <tr>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">Item / Material</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">Código Interno</th>
-                                    <th className="p-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">Ações</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest">Item / Material</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest">Código Interno</th>
+                                    <th className="p-5 font-black text-gray-500 text-[10px] uppercase tracking-widest text-center">Ações</th>
                                 </tr>
                             )}
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-gray-100">
                             {view === "fornecedores" ? (
                                 fornecedoresFiltrados.map((f) => (
                                     <tr key={f.cnpj} className="hover:bg-emerald-50/30 transition-all group">
-                                        <td className="p-5"><div className="flex items-center space-x-3">{f.favorito && <Star size={18} className="text-yellow-500 fill-yellow-500" />}<span className="font-bold text-gray-900 text-lg group-hover:text-emerald-700">{f.empresa}</span></div></td>
-                                        <td className="p-5"><span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-gray-200">{f.categoria}</span></td>
-                                        <td className="p-5 text-gray-500 font-bold text-sm"><div className="flex items-center gap-1"><MapPin size={14} className="text-emerald-600" /> {f.localização}</div></td>
-                                        <td className="p-5 text-center">{f.favorito ? <span className="px-3 py-1 bg-green-100 text-green-800 text-[10px] rounded-full font-black border border-green-200">PREFERENCIAL</span> : <span className="px-3 py-1 bg-gray-50 text-gray-400 text-[10px] rounded-full font-bold border border-gray-100">COMUM</span>}</td>
+                                        <td className="p-5"><div className="flex items-center space-x-3">{f.favorito && <Star size={18} className="text-yellow-500 fill-yellow-500" />}<span className="font-bold text-gray-900 text-lg group-hover:text-emerald-700">{f.empresa || "Sem Nome"}</span></div></td>
+                                        <td className="p-5"><span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-gray-200">{f.categoria || "Geral"}</span></td>
+                                        <td className="p-5 text-gray-600 font-bold text-sm"><div className="flex items-center gap-1"><MapPin size={14} className="text-emerald-600" /> {f.localização || "N/A"}</div></td>
+                                        <td className="p-5 text-center">{f.favorito ? <span className="px-3 py-1 bg-green-100 text-green-800 text-[10px] rounded-full font-black border border-green-200">PREFERENCIAL</span> : <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] rounded-full font-bold border border-gray-200">COMUM</span>}</td>
                                         <td className="p-5 text-center"><Link href={`/fornecedores/${f.cnpj.replace(/\D/g, '')}`} className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-600 transition shadow-md">DETALHES</Link></td>
                                     </tr>
                                 ))
                             ) : (
                                 produtosFiltrados.map((p) => (
                                     <tr key={p.id} className="hover:bg-emerald-50/30 transition-all group">
-                                        <td className="p-5 font-bold text-gray-900 text-lg group-hover:text-emerald-700">{p.nome}</td>
-                                        <td className="p-5 text-gray-400 font-mono text-sm tracking-tighter">{p.id.toString().padStart(4, '0')}</td>
+                                        <td className="p-5 font-bold text-gray-900 text-lg group-hover:text-emerald-700">{p.nome || "Sem Nome"}</td>
+                                        <td className="p-5 text-gray-500 font-mono text-sm tracking-tighter">{p.id.toString().padStart(4, '0')}</td>
                                         <td className="p-5 text-center">
-                                            {/* --- LINK PARA A NOVA PÁGINA --- */}
                                             <Link href={`/produtos/${p.id}`} className="inline-block bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-600 transition shadow-md">
                                                 VER FORNECEDORES
                                             </Link>

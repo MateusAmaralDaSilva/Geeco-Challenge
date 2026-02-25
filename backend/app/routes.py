@@ -55,7 +55,7 @@ def verificar_token(credenciais: HTTPBearer = Depends(security)):
 # --- VÍNCULOS & DOCUMENTOS ---
 
 @router.get("/fornecedores/{cnpj}/produtos")
-async def listar_produtos_fornecedor(cnpj: str, user = Depends(verificar_token)):
+def listar_produtos_fornecedor(cnpj: str, user = Depends(verificar_token)):
     try:
         return ProdutoFornecedorCRUD(get_supabase_client()).buscar_produto_fornecedor(cnpj_fornecedor=formatar_cnpj(cnpj))
     except Exception as e:
@@ -63,7 +63,7 @@ async def listar_produtos_fornecedor(cnpj: str, user = Depends(verificar_token))
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/produtos/{id}/fornecedores")
-async def listar_fornecedores_do_produto(id: int, user = Depends(verificar_token)):
+def listar_fornecedores_do_produto(id: int, user = Depends(verificar_token)):
     try:
         return ProdutoFornecedorCRUD(get_supabase_client()).buscar_produto_fornecedor(id_produto=id)
     except Exception as e:
@@ -147,14 +147,14 @@ async def atualizar_documento(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/documentos/{id}")
-async def deletar_documento(id: int, user = Depends(verificar_token)):
+def deletar_documento(id: int, user = Depends(verificar_token)):
     try:
         return DocumentoCRUD(get_supabase_client()).deletar_documento(id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/fornecedores/{cnpj}/documentos")
-async def listar_documentos_fornecedor(cnpj: str, user = Depends(verificar_token)):
+def listar_documentos_fornecedor(cnpj: str, user = Depends(verificar_token)):
     try:
         cnpj_f = formatar_cnpj(cnpj)
         return DocumentoCRUD(get_supabase_client()).listar_por_fornecedor(cnpj_f)
@@ -162,7 +162,7 @@ async def listar_documentos_fornecedor(cnpj: str, user = Depends(verificar_token
         raise HTTPException(status_code=400, detail=str(e))
     
 @router.post("/fornecedores/{cnpj}/produtos/{id_produto}")
-async def vincular_produto_ao_fornecedor(cnpj: str, id_produto: int, user = Depends(verificar_token)):
+def vincular_produto_ao_fornecedor(cnpj: str, id_produto: int, user = Depends(verificar_token)):
     try:
         dados = {"cnpj_fornecedor": formatar_cnpj(cnpj), "id_produto": id_produto}
         return ProdutoFornecedorCRUD(get_supabase_client()).criar_produto_fornecedor(dados)
@@ -170,7 +170,7 @@ async def vincular_produto_ao_fornecedor(cnpj: str, id_produto: int, user = Depe
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/fornecedores/{cnpj}/produtos/{id_produto}")
-async def desvincular_produto_do_fornecedor(cnpj: str, id_produto: int, user = Depends(verificar_token)):
+def desvincular_produto_do_fornecedor(cnpj: str, id_produto: int, user = Depends(verificar_token)):
     try:
         return ProdutoFornecedorCRUD(get_supabase_client()).deletar_produto_fornecedor(formatar_cnpj(cnpj), id_produto)
     except Exception as e:
@@ -180,7 +180,7 @@ async def desvincular_produto_do_fornecedor(cnpj: str, id_produto: int, user = D
 # --- FORNECEDORES ---
 
 @router.post("/fornecedores/cadastro")
-async def cadastrar_fornecedor(payload: dict, user = Depends(verificar_token)):
+def cadastrar_fornecedor(payload: dict, user = Depends(verificar_token)):
     try:
         f_data = payload.get("fornecedor_dict")
         if not f_data: 
@@ -199,12 +199,12 @@ async def cadastrar_fornecedor(payload: dict, user = Depends(verificar_token)):
         raise HTTPException(status_code=400, detail=f"Erro no cadastro: {str(e)}")
 
 @router.get("/fornecedores")
-async def listar_fornecedores(cnpj: Optional[str] = None, user = Depends(verificar_token)):
+def listar_fornecedores(cnpj: Optional[str] = None, user = Depends(verificar_token)):
     crud = FornecedorCRUD(get_supabase_client())
     return crud.buscar_fornecedor(cnpj) if cnpj else crud.buscar_fornecedor()
 
 @router.get("/fornecedores/{cnpj:path}")
-async def buscar_fornecedor_por_cnpj(cnpj: str, user = Depends(verificar_token)):
+def buscar_fornecedor_por_cnpj(cnpj: str, user = Depends(verificar_token)):
     try:
         cnpj_limpo = cnpj.replace("%2F", "/")
         cnpj_f = formatar_cnpj(cnpj_limpo)
@@ -216,7 +216,7 @@ async def buscar_fornecedor_por_cnpj(cnpj: str, user = Depends(verificar_token))
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/fornecedores/{cnpj}")
-async def atualizar_fornecedor(cnpj: str, fornecedor: FornecedorSchema, user = Depends(verificar_token)):
+def atualizar_fornecedor(cnpj: str, fornecedor: FornecedorSchema, user = Depends(verificar_token)):
     try:
         cnpj_f = formatar_cnpj(cnpj)
         fornecedor.cnpj = cnpj_f
@@ -227,14 +227,14 @@ async def atualizar_fornecedor(cnpj: str, fornecedor: FornecedorSchema, user = D
         raise HTTPException(status_code=400, detail=f"Erro na atualização: {str(e)}")
 
 @router.delete("/fornecedores/{cnpj}")
-async def deletar_fornecedor(cnpj: str, user = Depends(verificar_token)):
+def deletar_fornecedor(cnpj: str, user = Depends(verificar_token)):
     cnpj_f = formatar_cnpj(cnpj)
     return FornecedorCRUD(get_supabase_client()).deletar_fornecedor(cnpj_f)
 
 # --- REPRESENTANTES ---
 
 @router.post("/representantes/cadastro")
-async def cadastrar_representante(representante: RepresentanteCreateSchema, user = Depends(verificar_token)):
+def cadastrar_representante(representante: RepresentanteCreateSchema, user = Depends(verificar_token)):
     try:
         dados = representante.model_dump()
         dados["cnpj_fornecedor"] = formatar_cnpj(dados["cnpj_fornecedor"]) 
@@ -244,80 +244,92 @@ async def cadastrar_representante(representante: RepresentanteCreateSchema, user
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/representantes")
-async def listar_representantes(cnpj_fornecedor: Optional[str] = None, user = Depends(verificar_token)):
+def listar_representantes(cnpj_fornecedor: Optional[str] = None, user = Depends(verificar_token)):
     crud = RepresentanteCRUD(get_supabase_client())
     if cnpj_fornecedor:
         return crud.buscar_representante(formatar_cnpj(cnpj_fornecedor))
     return crud.buscar_representante()
 
 @router.put("/representantes/{id}")
-async def atualizar_representante(id: int, representante: RepresentanteSchema, user = Depends(verificar_token)):
+def atualizar_representante(id: int, representante: RepresentanteSchema, user = Depends(verificar_token)):
     return RepresentanteCRUD(get_supabase_client()).atualizar_representante(id, representante.model_dump())
 
 @router.delete("/representantes/{id}")
-async def deletar_representante(id: int, user = Depends(verificar_token)):
+def deletar_representante(id: int, user = Depends(verificar_token)):
     return RepresentanteCRUD(get_supabase_client()).deletar_representante(id)
 
 # --- PRODUTOS ---
 
 @router.get("/produtos")
-async def listar_produtos(user = Depends(verificar_token)):
+def listar_produtos(user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).buscar_produto()
 
 @router.post("/produtos/cadastro")
-async def cadastrar_produto(produto: ProdutoCreateSchema, user = Depends(verificar_token)):
+def cadastrar_produto(produto: ProdutoCreateSchema, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).criar_produto(produto.model_dump())
 
 @router.get("/produtos/{id}")
-async def buscar_produto_por_id(id: int, user = Depends(verificar_token)):
+def buscar_produto_por_id(id: int, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).buscar_produto(id)
 
 @router.put("/produtos/{id}")
-async def atualizar_produto(id: int, produto: ProdutoSchema, user = Depends(verificar_token)):
+def atualizar_produto(id: int, produto: ProdutoSchema, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).atualizar_produto(id, produto.model_dump())
 
 @router.delete("/produtos/{id}")
-async def deletar_produto(id: int, user = Depends(verificar_token)):
+def deletar_produto(id: int, user = Depends(verificar_token)):
     return ProdutoCRUD(get_supabase_client()).deletar_produto(id)
 
-
 # --- CHATBOT (INJEÇÃO DE CONTEXTO) ---
-
+    
 @router.post("/IA")
 async def conversar_com_ia(payload: PerguntaChat, user = Depends(verificar_token)):
     try:
-        # Puxa a chave direto do .env de forma segura
         chave_api = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not chave_api:
             return {"resposta": "Erro interno: Chave da IA não encontrada."}
-
+        
         db = get_supabase_client()
         pergunta = payload.pergunta
-
+        
+        # 1. Busca todos os fornecedores
         fornecedores = FornecedorCRUD(db).buscar_fornecedor()
-
+        
         if not fornecedores:
             return {"resposta": "Ainda não há fornecedores cadastrados na base."}
-
-        vinculos_crud = ProdutoFornecedorCRUD(db)
-
+        
+        # 2. Busca TODOS os vínculos e nomes de produtos de uma vez só
+        resposta_vinculos = db.table("produtos_fornecedores").select("cnpj_fornecedor, produtos(nome)").execute()
+        todos_vinculos = resposta_vinculos.data or []
+        
+        # 3. Criação do Hash Map (Dicionário Python) para cruzamento instantâneo O(1)
+        # Formato que vamos criar: {'12.345...': ['Cimento', 'Tijolo'], '98.765...': ['Cabo']}
+        mapa_produtos = {}
+        for vinculo in todos_vinculos:
+            cnpj = vinculo.get('cnpj_fornecedor')
+            produto_dict = vinculo.get('produtos') 
+            nome_produto = produto_dict.get('nome') if produto_dict else "Produto Desconhecido"
+            
+            if cnpj not in mapa_produtos:
+                mapa_produtos[cnpj] = []
+            mapa_produtos[cnpj].append(nome_produto)
+        
         dados_excel_em_texto = "CNPJ | Empresa | Categoria | Localização | Descrição | Produtos Fornecidos\n"
         dados_excel_em_texto += "-" * 100 + "\n"
         
         for f in fornecedores:
             cnpj = f.get('cnpj')
-            try:
-                produtos_db = vinculos_crud.buscar_produto_fornecedor(cnpj_fornecedor=cnpj)
-                if produtos_db:
-                    nomes_produtos = [p.get('nome', f"Produto #{p.get('id_produto', '')}") for p in produtos_db]
-                    produtos_str = ", ".join(nomes_produtos)
-                else:
-                    produtos_str = "Nenhum produto vinculado"
-            except Exception as e:
-                produtos_str = "Desconhecido"
-
+            
+            # Busca no dicionário instantaneamente. Se não achar, retorna lista vazia []
+            lista_produtos_deste_fornecedor = mapa_produtos.get(cnpj, [])
+            
+            if lista_produtos_deste_fornecedor:
+                produtos_str = ", ".join(lista_produtos_deste_fornecedor)
+            else:
+                produtos_str = "Nenhum produto vinculado"
+                
             dados_excel_em_texto += f"{cnpj} | {f.get('empresa')} | {f.get('categoria')} | {f.get('localização')} | {f.get('descrição')} | {produtos_str}\n"
-
+            
         prompt_final = f"""Você é um assistente virtual especialista na nossa base de fornecedores e produtos.
         Abaixo está a nossa planilha de dados completa e atualizada, contendo o fornecedor e o que ele fornece.
         PLANILHA DE DADOS:
@@ -327,18 +339,18 @@ async def conversar_com_ia(payload: PerguntaChat, user = Depends(verificar_token
         - Seja claro, direto, amigável e profissional.
         - Se a resposta não estiver na planilha, diga gentilmente que não encontrou essa informação. Não invente ou presuma nada.
         Pergunta do usuário: {pergunta}"""
-
+        
         client = genai.Client(api_key=chave_api)
         resposta_ia = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt_final,
         )
-
+        
         return {
             "resposta": resposta_ia.text,
             "linhas_lidas": len(fornecedores)
         }
-
+        
     except Exception as e:
         print(f"Erro na IA: {e}")
         raise HTTPException(status_code=500, detail="Erro ao processar a pergunta com a IA.")

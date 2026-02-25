@@ -22,7 +22,7 @@ export default function NovoFornecedor() {
         favorito: false
     });
 
-    // --- LÓGICA DE AUTOCOMPLETE DINÂMICO ---
+    // --- LÓGICA DE AUTOCOMPLETE ---
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
 
     const [categoriasDoBanco, setCategoriasDoBanco] = useState<string[]>([]);

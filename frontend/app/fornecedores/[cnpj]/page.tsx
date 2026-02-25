@@ -51,31 +51,39 @@ export default function DetalhesFornecedor() {
                 "Cache-Control": "no-store"
             };
 
-            const resFornecedor = await fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}`, { headers });
+            const [resFornecedor, resDocs, resProdutos, resReps] = await Promise.all([
+                fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}`, { headers }),
+                fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}/documentos`, { headers }),
+                fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}/produtos`, { headers }),
+                fetch(`http://127.0.0.1:8001/representantes?cnpj_fornecedor=${cnpjLimpo}`, { headers })
+            ]);
+
+            // Valida a principal (Se o fornecedor não existir, quebra e cai no catch)
             if (!resFornecedor.ok) throw new Error("Não foi possível carregar os dados do fornecedor.");
             const dataFornecedor = await resFornecedor.json();
 
-            const resDocs = await fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}/documentos`, { headers });
+            // Trata Documentos
             let dataDocs = [];
             if (resDocs.ok) {
                 const jsonDocs = await resDocs.json();
                 dataDocs = Array.isArray(jsonDocs) ? jsonDocs : (jsonDocs.data || []);
             }
 
-            const resProdutos = await fetch(`http://127.0.0.1:8001/fornecedores/${cnpjLimpo}/produtos`, { headers });
+            // Trata Produtos
             let dataProdutos = [];
             if (resProdutos.ok) {
                 const jsonProdutos = await resProdutos.json();
                 dataProdutos = Array.isArray(jsonProdutos) ? jsonProdutos : (jsonProdutos.data || []);
             }
 
-            const resReps = await fetch(`http://127.0.0.1:8001/representantes?cnpj_fornecedor=${cnpjLimpo}`, { headers });
+            // Trata Representantes
             let dataReps = [];
             if (resReps.ok) {
                 const jsonReps = await resReps.json();
                 dataReps = Array.isArray(jsonReps) ? jsonReps : (jsonReps.data || []);
             }
 
+            // Atualiza os estados de uma única vez, causando apenas 1 renderização no React!
             setFornecedor(Array.isArray(dataFornecedor) ? dataFornecedor[0] : dataFornecedor);
             setDocumentos(dataDocs);
             setProdutos(dataProdutos);
@@ -183,7 +191,6 @@ export default function DetalhesFornecedor() {
         
         try {
             // 1. Pede para o Supabase gerar um link temporário (válido por 60 segundos)
-            // Lembre-se de confirmar se o nome do seu bucket é "documentos" mesmo
             const { data, error } = await supabase.storage
                 .from('Documentos')
                 .createSignedUrl(caminhoStorage, 60);
@@ -504,7 +511,6 @@ export default function DetalhesFornecedor() {
                 />
             )}
 
-            {/* NOVO MODAL DE EDIÇÃO DE DOCUMENTO */}
             {documentoSendoEditado && (
                 <ModalEditarDocumento
                     documento={documentoSendoEditado}
@@ -516,17 +522,12 @@ export default function DetalhesFornecedor() {
     );
 }
 
-// ==========================================
 // COMPONENTES SECUNDÁRIOS (MODAIS)
-// ==========================================
-
-// NOVO COMPONENTE: ModalEditarDocumento
 function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
     const [formData, setFormData] = useState({
         nome_arquivo: documento.nome_arquivo || "",
         validade: documento.validade ? new Date(documento.validade).toISOString().split('T')[0] : ""
     });
-    // NOVO: Estado para segurar o arquivo novo (se o usuário selecionar)
     const [arquivoNovo, setArquivoNovo] = useState<File | null>(null);
     const [salvando, setSalvando] = useState(false);
 
@@ -536,7 +537,7 @@ function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             
-            // NOVO: Criando um FormData em vez de JSON
+            // Criando um FormData 
             const payload = new FormData();
             payload.append("nome_arquivo", formData.nome_arquivo);
             payload.append("validade", formData.validade);
@@ -548,7 +549,6 @@ function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
             const response = await fetch(`http://127.0.0.1:8001/documentos/${documento.id}`, {
                 method: "PUT",
                 headers: {
-                    // ATENÇÃO: NÃO coloque "Content-Type" aqui quando usar FormData!
                     "Authorization": `Bearer ${session?.access_token}`
                 },
                 body: payload 
@@ -598,7 +598,6 @@ function ModalEditarDocumento({ documento, onClose, onSuccess }: any) {
                             onChange={(e) => {
                                 if (e.target.files && e.target.files.length > 0) {
                                     setArquivoNovo(e.target.files[0]);
-                                    // Atualiza o nome do arquivo no formulário para refletir o novo arquivo selecionado
                                     setFormData({...formData, nome_arquivo: e.target.files[0].name});
                                 }
                             }}

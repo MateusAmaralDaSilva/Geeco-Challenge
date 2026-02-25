@@ -44,19 +44,24 @@ export default function DetalhesProduto() {
                 "Cache-Control": "no-store"
             };
 
-            const resProduto = await fetch(`http://127.0.0.1:8001/produtos/${produtoId}`, { headers });
+            const [resProduto, resFornecedores] = await Promise.all([
+                fetch(`http://127.0.0.1:8001/produtos/${produtoId}`, { headers }),
+                fetch(`http://127.0.0.1:8001/produtos/${produtoId}/fornecedores`, { headers })
+            ]);
+
+            // Se o produto não for encontrado, quebra a execução e cai no catch
             if (!resProduto.ok) throw new Error("Produto não encontrado.");
             const dataP = await resProduto.json();
             const dadosProdutoTratados = Array.isArray(dataP) ? dataP[0] : dataP;
 
-            const resFornecedores = await fetch(`http://127.0.0.1:8001/produtos/${produtoId}/fornecedores`, { headers });
-            
+            // Processa a lista de fornecedores independentemente
             let fornecedoresVinculados = [];
             if (resFornecedores.ok) {
                 const jsonF = await resFornecedores.json();
                 fornecedoresVinculados = Array.isArray(jsonF) ? jsonF : (jsonF.data || []);
             }
 
+            // Atualiza a tela de uma vez só
             setProduto(dadosProdutoTratados);
             setFornecedores(fornecedoresVinculados);
             
@@ -73,7 +78,7 @@ export default function DetalhesProduto() {
         return () => { isMounted = false };
     }, [params.id, router]);
 
-    // --- NOVA FUNÇÃO: DELETAR PRODUTO ---
+    // --- DELETAR PRODUTO ---
     async function deletarProduto() {
         const confirmacao = window.confirm(`Tem certeza que deseja EXCLUIR o item ${produto.nome}? Todos os vínculos com fornecedores serão perdidos.`);
         if (!confirmacao) return;
@@ -147,7 +152,7 @@ export default function DetalhesProduto() {
                     Voltar ao Dashboard
                 </Link>
 
-                {/* CARD PRINCIPAL DO PRODUTO (ATUALIZADO COM BOTÕES) */}
+                {/* CARD PRINCIPAL DO PRODUTO */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-gray-200 overflow-hidden mb-8">
                     <div className="p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-emerald-700 text-white">
                         <div className="flex items-center gap-6">

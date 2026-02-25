@@ -11,7 +11,7 @@ export default function NovoProduto() {
     const [loading, setLoading] = useState(false);
     const [token, setToken] = useState<string | null>(null);
 
-    // Estado do formulário enxuto: agora apenas com o 'nome'
+    // FormData para segurar os dados do formulário
     const [formData, setFormData] = useState({
         nome: ""
     });
@@ -44,7 +44,6 @@ export default function NovoProduto() {
         }
 
         try {
-            // Payload simples e direto, exatamente como o FastAPI espera
             const payload = {
                 nome: formData.nome
             };
@@ -100,7 +99,6 @@ export default function NovoProduto() {
                                     placeholder="ex: cimento cp ii 50kg"
                                     className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-black text-gray-900 tracking-wide transition-all placeholder:text-gray-300 placeholder:font-medium"
                                     value={formData.nome}
-                                    // AQUI ESTÁ A MUDANÇA: .toLowerCase() força o texto a ficar em minúsculo
                                     onChange={e => setFormData({...formData, nome: e.target.value.toLowerCase()})}
                                 />
                             </div>
